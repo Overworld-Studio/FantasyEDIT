@@ -26,7 +26,7 @@ public final class RegistryUnfreezer {
             frozen.setAccessible(true);
             frozen.setBoolean(mapped, false);
         } catch (ReflectiveOperationException e) {
-            FantasyItem.LOGGER.warn("无法解冻注册表 {}", registry.key().location(), e);
+            FantasyItem.LOGGER.warn("无法解冻注册表 {}", registry.key().identifier(), e);
         }
     }
 }
