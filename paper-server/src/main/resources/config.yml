@@ -1,0 +1,15 @@
+# Fantasy:Item 服务端配置
+# 定义目录相对于 plugins/FantasyItem/
+definitions-directory: definitions
+
+# 未指定 base_item 时使用的原版载体物品
+default-base-item: PAPER
+
+# 是否在控制台输出每条定义
+verbose: false
+
+behaviors:
+  # ON_TICK 触发器的扫描间隔（tick）。20 tick = 1 秒，间隔越大开销越低
+  tick-interval: 5
+  # 是否允许 EXECUTE_COMMAND 以控制台身份执行（默认关闭，安全沙盒）
+  allow-console-commands: false

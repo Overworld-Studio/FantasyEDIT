@@ -1,0 +1,5 @@
+// 根工程只做版本约束，具体构建逻辑在两个子模块中。
+allprojects {
+    group = rootProject.property('maven_group')
+    version = rootProject.property('mod_version')
+}

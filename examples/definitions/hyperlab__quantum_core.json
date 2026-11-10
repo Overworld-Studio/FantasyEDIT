@@ -1,0 +1,52 @@
+{
+  "namespace": "hyperlab",
+  "path": "quantum_core",
+  "type": "ITEM",
+  "display_name": "&b量子核心",
+  "lore": [
+    "&7虚空造物 · 第一批实验体",
+    "&8—— 记录于零号实验室"
+  ],
+  "block_properties": {
+    "template": "SOLID",
+    "light_level": 0
+  },
+  "model": "quantum_core.json",
+  "texture": "quantum_core.png",
+  "glint": true,
+  "rarity": "RARE",
+  "max_stack_size": 16,
+  "base_item": "PAPER",
+  "behaviors": [
+    {
+      "trigger": "ON_RIGHT_CLICK",
+      "action": "SPAWN_PARTICLE",
+      "value": "minecraft:end_rod",
+      "amount": 18,
+      "duration": 100,
+      "amplifier": 0,
+      "as_player": true,
+      "cooldown_ticks": 10
+    },
+    {
+      "trigger": "ON_ENTITY_HIT",
+      "action": "APPLY_POTION",
+      "value": "minecraft:glowing",
+      "amount": 1,
+      "duration": 200,
+      "amplifier": 0,
+      "as_player": true,
+      "cooldown_ticks": 40
+    },
+    {
+      "trigger": "ON_TICK",
+      "action": "CUSTOM_SCRIPT_HOOK",
+      "value": "soul_aura",
+      "amount": 1,
+      "duration": 100,
+      "amplifier": 0,
+      "as_player": true,
+      "cooldown_ticks": 40
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+pluginManagement {
+    repositories {
+        maven { name = 'Fabric'; url = 'https://maven.fabricmc.net/' }
+        maven { name = 'Paper'; url = 'https://repo.papermc.io/repository/maven-public/' }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    // 允许 Gradle 自动下载 JDK 25 工具链（MC 26.3 的 class 文件版本为 69）
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'fantasy-item'
+
+include 'fabric-client', 'paper-server'

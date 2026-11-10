@@ -1,0 +1,42 @@
+plugins {
+    id 'java'
+}
+
+base {
+    archivesName = 'fantasy-item-paper'
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://repo.papermc.io/repository/maven-public/' }
+}
+
+dependencies {
+    compileOnly("io.papermc.paper:paper-api:${project.paper_api_version}") {
+        // 该传递依赖仅被 Paper 内部的可选功能使用，且镜像源上缺失 jar，编译期直接排除
+        exclude group: 'net.kyori', module: 'option'
+    }
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('plugin.yml') {
+        expand 'version': project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // Paper API 26.3 依赖的 class 文件版本为 69（Java 25）
+    options.release = 25
+    options.encoding = 'UTF-8'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+jar {
+    archiveClassifier = ''
+}

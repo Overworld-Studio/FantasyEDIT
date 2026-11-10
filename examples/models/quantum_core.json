@@ -1,0 +1,42 @@
+{
+  "credit": "Fantasy:Item 示例模型（Blockbench Java Block/Item 导出格式）",
+  "texture_size": [16, 16],
+  "textures": {
+    "0": "quantum_core",
+    "particle": "quantum_core"
+  },
+  "elements": [
+    {
+      "name": "shell",
+      "from": [2, 2, 2],
+      "to": [14, 14, 14],
+      "faces": {
+        "north": { "uv": [0, 0, 16, 16], "texture": "#0" },
+        "east": { "uv": [0, 0, 16, 16], "texture": "#0" },
+        "south": { "uv": [0, 0, 16, 16], "texture": "#0" },
+        "west": { "uv": [0, 0, 16, 16], "texture": "#0" },
+        "up": { "uv": [0, 0, 16, 16], "texture": "#0" },
+        "down": { "uv": [0, 0, 16, 16], "texture": "#0" }
+      }
+    },
+    {
+      "name": "core",
+      "from": [5.5, 5.5, 5.5],
+      "to": [10.5, 10.5, 10.5],
+      "rotation": { "origin": [8, 8, 8], "axis": "y", "angle": 45, "rescale": false },
+      "faces": {
+        "north": { "uv": [2, 2, 14, 14], "texture": "#0" },
+        "east": { "uv": [2, 2, 14, 14], "texture": "#0" },
+        "south": { "uv": [2, 2, 14, 14], "texture": "#0" },
+        "west": { "uv": [2, 2, 14, 14], "texture": "#0" },
+        "up": { "uv": [2, 2, 14, 14], "texture": "#0" },
+        "down": { "uv": [2, 2, 14, 14], "texture": "#0" }
+      }
+    }
+  ],
+  "display": {
+    "gui": { "rotation": [30, 45, 0], "translation": [0, 0, 0], "scale": [1, 1, 1] },
+    "ground": { "rotation": [0, 0, 0], "translation": [0, 2, 0], "scale": [0.5, 0.5, 0.5] },
+    "fixed": { "rotation": [0, 180, 0], "translation": [0, 0, 0], "scale": [1, 1, 1] }
+  }
+}

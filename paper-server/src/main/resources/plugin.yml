@@ -1,0 +1,19 @@
+name: FantasyItem
+version: '${version}'
+main: com.fantasy.item.paper.FantasyItemPlugin
+api-version: '26.3'
+authors: [ lively-Studio ]
+description: Fantasy:Item 服务端：加载虚空造物 JSON 定义并发放自定义物品。
+website: https://fantasy.example
+
+commands:
+  fantasyitem:
+    description: Fantasy:Item 管理指令
+    usage: /fantasyitem <reload|list|give>
+    aliases: [ fitem ]
+    permission: fantasyitem.admin
+
+permissions:
+  fantasyitem.admin:
+    description: 允许使用 Fantasy:Item 管理指令
+    default: op
