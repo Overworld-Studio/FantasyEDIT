@@ -1,7 +1,10 @@
-build/
+# 构建产物：仅忽略模块根目录下的 build，避免误伤 java 包名 com/.../build
+/build/
+/fabric-client/build/
+/paper-server/build/
 .gradle/
-run/
-out/
+/run/
+/out/
 *.iml
 .idea/
 .vscode/
