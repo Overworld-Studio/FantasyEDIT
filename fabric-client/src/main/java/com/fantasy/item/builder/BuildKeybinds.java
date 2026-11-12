@@ -47,7 +47,8 @@ public final class BuildKeybinds {
         if (consume(TOGGLE)) {
             ClientBuildEngine.toggle(minecraft);
         }
-        if (!ClientBuildEngine.active()) {
+        // 非创造模式下静默失效：不打开面板、不弹 HUD、不执行任何建造操作
+        if (!ClientBuildEngine.enabled(minecraft)) {
             drain();
             return;
         }

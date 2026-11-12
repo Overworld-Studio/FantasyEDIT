@@ -22,7 +22,7 @@ public final class BuildHud implements HudElement {
         if (minecraft == null || minecraft.player == null) {
             return;
         }
-        if (!ClientBuildEngine.active() || minecraft.gui.screen() != null) {
+        if (!ClientBuildEngine.enabled(minecraft) || minecraft.gui.screen() != null) {
             return;
         }
 

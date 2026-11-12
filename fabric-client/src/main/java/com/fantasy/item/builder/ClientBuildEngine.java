@@ -49,10 +49,10 @@ public final class ClientBuildEngine {
      */
     public static void registerGuards() {
         UseBlockCallback.EVENT.register((player, level, hand, hit) ->
-                active && mode == BuildMode.BRUSH && hand == InteractionHand.MAIN_HAND
+                active && player.isCreative() && mode == BuildMode.BRUSH && hand == InteractionHand.MAIN_HAND
                         ? InteractionResult.FAIL : InteractionResult.PASS);
         AttackBlockCallback.EVENT.register((player, level, hand, pos, direction) ->
-                active && mode == BuildMode.BRUSH && hand == InteractionHand.MAIN_HAND
+                active && player.isCreative() && mode == BuildMode.BRUSH && hand == InteractionHand.MAIN_HAND
                         ? InteractionResult.FAIL : InteractionResult.PASS);
     }
 
@@ -60,6 +60,16 @@ public final class ClientBuildEngine {
 
     public static boolean active() {
         return active;
+    }
+
+    /**
+     * 是否真正生效：建造模式已开启且玩家处于创造模式。
+     *
+     * <p>这里只做「是否可用」的判断，不会改写 {@link #active}；
+     * 因此玩家临时切到生存模式时，建造状态会被安静地保留，切回创造后自动恢复。</p>
+     */
+    public static boolean enabled(Minecraft minecraft) {
+        return active && isCreative(minecraft);
     }
 
     public static BuildMode mode() {
@@ -148,9 +158,8 @@ public final class ClientBuildEngine {
         if (minecraft.player == null || minecraft.level == null) {
             return;
         }
+        // 非创造模式：不弹任何 UI、不响应任何操作，但保留开启状态，切回创造后自动继续
         if (!isCreative(minecraft)) {
-            active = false;
-            status = "§e已退出快速搭建（非创造模式）";
             return;
         }
         if (minecraft.gui.screen() != null) {
