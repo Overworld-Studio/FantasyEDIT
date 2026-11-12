@@ -1,11 +1,16 @@
 package com.fantasy.edit.behavior;
 
+import com.fantasy.edit.rule.RuleEngine;
+
 /**
  * 单条「触发器 → 动作」规则，随定义一起持久化到 definitions/*.json。
  */
 public class BehaviorRule {
 
-    public static final int MAX_RULES = 16;
+    /** 单个物品允许的行为规则条数，由运行时规则实时决定。 */
+    public static int maxRules() {
+        return Math.max(1, RuleEngine.integer("behavior.max_rules"));
+    }
 
     public String trigger = TriggerType.ON_RIGHT_CLICK.name();
     public String action = ActionType.SPAWN_PARTICLE.name();

@@ -3,6 +3,7 @@ package com.fantasy.edit.behavior;
 import com.fantasy.edit.FantasyEdit;
 import com.fantasy.edit.definition.ItemDefinition;
 import com.fantasy.edit.network.BehaviorSync;
+import com.fantasy.edit.rule.RuleEngine;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -75,7 +76,7 @@ public final class ClientBehaviorRuntime {
         if (!(type instanceof SimpleParticleType simple)) {
             return;
         }
-        int count = Math.max(1, Math.min(64, rule.amount));
+        int count = Math.max(1, Math.min(Math.max(1, RuleEngine.integer("behavior.max_particles")), rule.amount));
         for (int i = 0; i < count; i++) {
             double dx = (level.getRandom().nextDouble() - 0.5D) * 0.8D;
             double dy = level.getRandom().nextDouble() * 0.8D + 0.3D;

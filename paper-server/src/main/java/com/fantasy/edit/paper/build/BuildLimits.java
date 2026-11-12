@@ -7,13 +7,18 @@ import org.bukkit.configuration.file.FileConfiguration;
  */
 public final class BuildLimits {
 
-    public final boolean enabled;
-    public final boolean creativeOnly;
-    public final int maxVolume;
-    public final int maxRadius;
-    public final int historyDepth;
+    public boolean enabled;
+    public boolean creativeOnly;
+    public int maxVolume;
+    public int maxRadius;
+    public int historyDepth;
 
     public BuildLimits(FileConfiguration config) {
+        reload(config);
+    }
+
+    /** 重读 config.yml。由 /fantasyedit reload 调用，无需重启服务器。 */
+    public void reload(FileConfiguration config) {
         this.enabled = config.getBoolean("build.enabled", true);
         this.creativeOnly = config.getBoolean("build.creative-only", true);
         this.maxVolume = Math.max(1, config.getInt("build.max-volume", 250_000));

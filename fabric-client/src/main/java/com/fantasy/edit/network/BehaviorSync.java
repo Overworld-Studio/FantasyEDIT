@@ -78,7 +78,7 @@ public final class BehaviorSync {
         }
         List<BehaviorRule> accepted = new ArrayList<>();
         for (BehaviorRule rule : message.behaviors) {
-            if (rule != null && rule.isValid() && accepted.size() < BehaviorRule.MAX_RULES) {
+            if (rule != null && rule.isValid() && accepted.size() < BehaviorRule.maxRules()) {
                 accepted.add(rule);
             }
         }

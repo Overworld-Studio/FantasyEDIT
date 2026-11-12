@@ -1,6 +1,7 @@
 package com.fantasy.edit.builder;
 
 import com.fantasy.edit.network.BuildSync;
+import com.fantasy.edit.rule.RuleEngine;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.client.Minecraft;
@@ -24,8 +25,10 @@ import net.minecraft.world.phys.HitResult;
  */
 public final class ClientBuildEngine {
 
-    /** 单次操作允许的最大方块数，避免一次填充直接卡死客户端。 */
-    public static final int MAX_VOLUME = 250_000;
+    /** 单次操作允许的最大方块数，由运行时规则实时决定，改完立即生效。 */
+    public static int maxVolume() {
+        return RuleEngine.integer("build.max_volume");
+    }
 
     private static boolean active;
     private static BuildMode mode = BuildMode.SELECT;
@@ -138,8 +141,17 @@ public final class ClientBuildEngine {
         brushShape = value == null ? BrushShape.SPHERE : value;
     }
 
+    /** 笔刷半径的合法区间，同样来自运行时规则。 */
+    public static int minRadius() {
+        return Math.max(1, RuleEngine.integer("build.radius_min"));
+    }
+
+    public static int maxRadius() {
+        return Math.max(minRadius(), RuleEngine.integer("build.radius_max"));
+    }
+
     public static void changeRadius(int delta) {
-        radius = Math.max(1, Math.min(32, radius + delta));
+        radius = Math.max(minRadius(), Math.min(maxRadius(), radius + delta));
         status = "§b笔刷半径: §f" + radius;
     }
 
@@ -167,20 +179,21 @@ public final class ClientBuildEngine {
         }
 
         if (mode == BuildMode.BRUSH) {
+            int interval = Math.max(1, RuleEngine.integer("build.brush_interval"));
             if (paintCooldown > 0) {
                 paintCooldown--;
             } else if (minecraft.options.keyAttack.isDown()) {
                 if (paintAt(minecraft, true)) {
-                    paintCooldown = 1;
+                    paintCooldown = interval;
                 }
             } else if (minecraft.options.keyUse.isDown()) {
                 if (paintAt(minecraft, erasing)) {
-                    paintCooldown = 1;
+                    paintCooldown = interval;
                 }
             }
         }
 
-        if (++previewTicks % 6 == 0) {
+        if (++previewTicks % Math.max(1, RuleEngine.integer("build.preview_interval")) == 0) {
             preview(minecraft);
         }
     }
@@ -191,6 +204,7 @@ public final class ClientBuildEngine {
         if (level == null) {
             return;
         }
+        int cap = Math.max(20, RuleEngine.integer("build.preview_particles"));
         int drawn = 0;
         if (selection.isComplete()) {
             BlockPos min = selection.min();
@@ -200,17 +214,17 @@ public final class ClientBuildEngine {
             int stepZ = Math.max(1, selection.sizeZ() / 12);
             for (int x = min.getX(); x <= max.getX(); x += stepX) {
                 for (int y = min.getY(); y <= max.getY(); y += stepY) {
-                    drawn += corner(level, x, y, min.getZ(), drawn);
-                    drawn += corner(level, x, y, max.getZ(), drawn);
-                    drawn += corner(level, x, min.getY(), y, drawn);
-                    drawn += corner(level, x, max.getY(), y, drawn);
+                    drawn += corner(level, x, y, min.getZ(), drawn, cap);
+                    drawn += corner(level, x, y, max.getZ(), drawn, cap);
+                    drawn += corner(level, x, min.getY(), y, drawn, cap);
+                    drawn += corner(level, x, max.getY(), y, drawn, cap);
                 }
             }
             for (int z = min.getZ(); z <= max.getZ(); z += stepZ) {
-                drawn += corner(level, min.getX(), min.getY(), z, drawn);
-                drawn += corner(level, max.getX(), min.getY(), z, drawn);
-                drawn += corner(level, min.getX(), max.getY(), z, drawn);
-                drawn += corner(level, max.getX(), max.getY(), z, drawn);
+                drawn += corner(level, min.getX(), min.getY(), z, drawn, cap);
+                drawn += corner(level, max.getX(), min.getY(), z, drawn, cap);
+                drawn += corner(level, min.getX(), max.getY(), z, drawn, cap);
+                drawn += corner(level, max.getX(), max.getY(), z, drawn, cap);
             }
         }
         if (active && mode == BuildMode.BRUSH && minecraft.hitResult instanceof BlockHitResult hit
@@ -223,7 +237,7 @@ public final class ClientBuildEngine {
                         if (dx * dx + dy * dy + dz * dz > radius * radius) {
                             continue;
                         }
-                        if (drawn > 220) {
+                        if (drawn > cap) {
                             return;
                         }
                         level.addParticle(ParticleTypes.END_ROD,
@@ -236,8 +250,8 @@ public final class ClientBuildEngine {
         }
     }
 
-    private static int corner(Level level, int x, int y, int z, int drawn) {
-        if (drawn > 220) {
+    private static int corner(Level level, int x, int y, int z, int drawn, int cap) {
+        if (drawn > cap) {
             return 0;
         }
         level.addParticle(ParticleTypes.END_ROD, x + 0.5, y + 0.5, z + 0.5, 0.0, 0.0, 0.0);
@@ -343,8 +357,8 @@ public final class ClientBuildEngine {
         if (level == null || !selection.isComplete()) {
             return 0;
         }
-        if (selection.volume() > MAX_VOLUME) {
-            status = "§c选区超过 " + MAX_VOLUME + " 格上限";
+        if (selection.volume() > maxVolume()) {
+            status = "§c选区超过 " + maxVolume() + " 格上限";
             return 0;
         }
         BuildHistory.Batch batch = new BuildHistory.Batch("填充 " + selection.describe());
@@ -371,8 +385,8 @@ public final class ClientBuildEngine {
         if (level == null || !selection.isComplete() || to == null) {
             return 0;
         }
-        if (selection.volume() > MAX_VOLUME) {
-            status = "§c选区超过 " + MAX_VOLUME + " 格上限";
+        if (selection.volume() > maxVolume()) {
+            status = "§c选区超过 " + maxVolume() + " 格上限";
             return 0;
         }
         BuildHistory.Batch batch = new BuildHistory.Batch("替换 " + selection.describe());
@@ -417,7 +431,7 @@ public final class ClientBuildEngine {
         if (level == null || center == null || state == null) {
             return 0;
         }
-        int r = Math.max(1, Math.min(32, radius));
+        int r = Math.max(minRadius(), Math.min(maxRadius(), radius));
         BuildHistory.Batch batch = new BuildHistory.Batch(shape.label() + " r=" + r);
         int changed = 0;
         for (int dx = -r; dx <= r; dx++) {

@@ -124,6 +124,13 @@ public final class FantasyEditPlugin extends JavaPlugin {
             }
         }
         getLogger().info("定义目录: " + directory.toAbsolutePath());
+
+        // 规则热更新：建造限额与历史深度不需要重启服务器即可生效
+        if (buildLimits != null) {
+            buildLimits.reload(getConfig());
+            buildHistory.setDepth(buildLimits.historyDepth);
+            getLogger().info("快速搭建限额已刷新: " + buildLimits.describe());
+        }
     }
 
     public DefinitionStore definitions() {

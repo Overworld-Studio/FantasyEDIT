@@ -1,5 +1,6 @@
 package com.fantasy.edit.builder;
 
+import com.fantasy.edit.rule.RuleEngine;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -30,8 +31,6 @@ public final class BuildHistory {
         }
     }
 
-    private static final int MAX_BATCHES = 64;
-
     private final Deque<Batch> undoStack = new ArrayDeque<>();
     private final Deque<Batch> redoStack = new ArrayDeque<>();
 
@@ -40,7 +39,8 @@ public final class BuildHistory {
             return;
         }
         this.undoStack.push(batch);
-        while (this.undoStack.size() > MAX_BATCHES) {
+        int depth = Math.max(4, RuleEngine.integer("build.history_depth"));
+        while (this.undoStack.size() > depth) {
             this.undoStack.removeLast();
         }
         this.redoStack.clear();

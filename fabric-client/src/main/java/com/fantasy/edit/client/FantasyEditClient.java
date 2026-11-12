@@ -8,6 +8,7 @@ import com.fantasy.edit.client.assets.AssetWorkspace;
 import com.fantasy.edit.client.creativetab.FantasyTabs;
 import com.fantasy.edit.network.BehaviorSync;
 import com.fantasy.edit.network.BuildSync;
+import com.fantasy.edit.rule.RuleEngine;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -22,6 +23,9 @@ public final class FantasyEditClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         AssetWorkspace.ensureLayout();
+        // 运行时规则：把硬编码常量与原版 GameRule 统一搬进可热改注册表
+        RuleEngine.bootstrap();
+        ClientTickEvents.END_CLIENT_TICK.register(RuleEngine::tick);
         FantasyTabs.register();
         StudioKeybinds.register();
         ClientTickEvents.END_CLIENT_TICK.register(StudioKeybinds::tick);

@@ -6,6 +6,7 @@ import com.fantasy.edit.behavior.ClientBehaviorRuntime;
 import com.fantasy.edit.behavior.ScriptHooks;
 import com.fantasy.edit.behavior.TriggerType;
 import com.fantasy.edit.text.LegacyText;
+import com.fantasy.edit.rule.RuleEngine;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -114,7 +115,7 @@ public final class BehaviorEditorScreen extends Screen {
         }).bounds(formX, this.contentY + 70, 62, 18).build());
         addRenderableWidget(Button.builder(Component.literal("+"), button -> {
             syncForm();
-            this.amount = Math.min(64, this.amount + 1);
+            this.amount = Math.min(Math.max(1, RuleEngine.integer("behavior.max_particles")), this.amount + 1);
             rebuildWidgets();
         }).bounds(formX + 66, this.contentY + 70, 24, 18).build());
 
@@ -196,7 +197,7 @@ public final class BehaviorEditorScreen extends Screen {
         this.duration = 100;
         this.amplifier = 0;
         this.asPlayer = true;
-        this.cooldown = 10;
+        this.cooldown = Math.max(0, RuleEngine.integer("behavior.default_cooldown"));
         rebuildWidgets();
     }
 
@@ -234,11 +235,11 @@ public final class BehaviorEditorScreen extends Screen {
         }
         if (this.editingIndex >= 0 && this.editingIndex < this.rules.size()) {
             this.rules.set(this.editingIndex, rule);
-        } else if (this.rules.size() < BehaviorRule.MAX_RULES) {
+        } else if (this.rules.size() < BehaviorRule.maxRules()) {
             this.rules.add(rule);
             this.editingIndex = this.rules.size() - 1;
         } else {
-            this.status = "§c已达到 " + BehaviorRule.MAX_RULES + " 条上限";
+            this.status = "§c已达到 " + BehaviorRule.maxRules() + " 条上限";
             rebuildWidgets();
             return;
         }
@@ -277,7 +278,7 @@ public final class BehaviorEditorScreen extends Screen {
         int formX = this.panelX + 222;
 
         graphics.text(this.font, Component.literal("Fantasy:EDIT · 行为编排（" + this.rules.size() + "/"
-                + BehaviorRule.MAX_RULES + "）"), this.panelX + 12, this.panelY + 12, 0xFFFFFFFF);
+                + BehaviorRule.maxRules() + "）"), this.panelX + 12, this.panelY + 12, 0xFFFFFFFF);
         graphics.text(this.font, Component.literal("规则列表"), listX, this.contentY - 11, COLOR_LABEL);
         graphics.text(this.font, Component.literal("触发 → 动作"), formX, this.contentY - 11, COLOR_LABEL);
 

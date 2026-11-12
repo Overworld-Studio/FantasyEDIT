@@ -38,10 +38,15 @@ public final class BuildHistoryService {
 
     private final Map<UUID, Deque<Batch>> undoStacks = new HashMap<>();
     private final Map<UUID, Deque<Batch>> redoStacks = new HashMap<>();
-    private final int depth;
+    private int depth;
 
     public BuildHistoryService(int depth) {
-        this.depth = depth;
+        this.depth = Math.max(1, depth);
+    }
+
+    /** 热更新历史深度，超出的旧快照会在下次写入时被裁掉。 */
+    public void setDepth(int depth) {
+        this.depth = Math.max(1, depth);
     }
 
     public void push(Player player, Batch batch) {

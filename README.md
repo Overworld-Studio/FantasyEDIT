@@ -21,6 +21,7 @@
 | 双端行为同步 | ✅ `fantasy_edit:behavior` → 服务端 | ✅ 校验后广播 `fantasy_edit:behavior_sync` |
 | 可视化工作室 | ✅ 快捷键 `U` / 创造物品栏按钮 | — |
 | 世界快速搭建（仅创造） | ✅ 选区 / 笔刷 / 剪贴板 / 撤销重做 | ✅ 权威执行 + 限额 + 独立历史 |
+| 运行时规则热改 | ✅ `O` 键规则面板 · 全部原版 GameRule + 自身常量 | ✅ `/fantasyedit reload` 即时刷新限额 |
 
 ---
 
@@ -54,6 +55,8 @@ FantasyEdit/
 │       │   │   ├── ClientBuildEngine.java          # 编辑原语 + 粒子预览
 │       │   │   ├── BuildKeybinds.java              # B / P / [ ] / Z / Y …
 │       │   │   └── BuildHud.java                   # 建造 HUD
+│       │   ├── rule/
+│       │   │   └── RuleEngine.java                 # 运行时规则注册表（本地常量 + 原版 GameRule）
 │       │   ├── behavior/                           # 运行时行为编排
 │       │   │   ├── TriggerType.java                # ON_RIGHT_CLICK / PLACE / HIT / TICK
 │       │   │   ├── ActionType.java                 # 粒子 / 音效 / 状态 / 指令 / 脚本钩子
@@ -74,11 +77,12 @@ FantasyEdit/
 │       │   ├── text/LegacyText.java                # & 颜色代码 → Component
 │       │   └── client/
 │       │       ├── FantasyEditClient.java
-│       │       ├── StudioKeybinds.java             # 快捷键 U
+│       │       ├── StudioKeybinds.java             # 快捷键 U / O
 │       │       ├── creativetab/FantasyTabs.java    # 专属 CreativeModeTab
 │       │       ├── gui/StudioScreen.java           # 三栏可视化工作室
 │       │       ├── gui/BehaviorEditorScreen.java   # 行为编排面板
 │       │       ├── gui/BuildToolbarScreen.java     # 快速搭建面板
+│       │       ├── gui/RuleEditorScreen.java       # 运行时规则面板
 │       │       ├── assets/
 │       │       │   ├── AssetWorkspace.java         # 配置目录布局
 │       │       │   ├── BlockbenchModel.java        # Blockbench JSON 解析器
@@ -401,9 +405,48 @@ build:
   history-depth: 32      # 每玩家撤销步数
 ```
 
+> 服务端限额在 `/fantasyedit reload` 后立即生效，无需重启服务器。
+
 ---
 
-## 8. 构建
+## 8. 运行时规则（无需重启即可修改游戏规则）
+
+原本写死在代码里的规则，现在统一收敛到一张**运行时规则注册表**，游戏内按 `O` 打开规则面板，改完立刻生效、自动落盘到 `config/fantasy_edit/rules.json`。
+
+| 来源 | 覆盖范围 | 生效方式 |
+| --- | --- | --- |
+| 模组自身规则 | 建造体积上限、笔刷半径区间、预览密度、撤销深度、行为条数上限、粒子数量上限、行为默认冷却… | 直接改写内存状态，下一 tick 生效 |
+| 原版 GameRule | `keepInventory`、`randomTickSpeed`、`mobGriefing`… 全部规则（反射枚举 `GameRules`） | 通过原版指令通道下发 `/gamerule`，服务端校验权限并广播 |
+
+### 8.1 面板操作
+
+- `O` 键打开规则面板，顶部分类页切换（全部 / 世界快速搭建 / 行为编排 / 原版 GameRule），每页 8 条，翻页浏览。
+- 布尔规则：点击名称翻转；数值规则：`−` / `+` 步进，右侧「复位」恢复默认。
+- 所有改动即时生效并写入 `rules.json`；重启游戏后自动加载并重新下发到新世界。
+
+### 8.2 内置规则一览
+
+| ID | 说明 | 默认 |
+| --- | --- | --- |
+| `build.max_volume` | 单次操作方块上限 | 250000 |
+| `build.radius_min` / `build.radius_max` | 笔刷半径区间 | 1 / 32 |
+| `build.brush_interval` | 笔刷连续绘制间隔（tick） | 1 |
+| `build.preview_interval` | 选区预览刷新间隔（tick） | 6 |
+| `build.preview_particles` | 选区预览粒子上限 | 220 |
+| `build.history_depth` | 撤销栈深度 | 64 |
+| `behavior.max_rules` | 单个物品行为规则条数上限 | 16 |
+| `behavior.max_particles` | 单次粒子动作数量上限 | 64 |
+| `behavior.default_cooldown` | 行为默认冷却（tick） | 10 |
+
+原版 GameRule 全量同步注册，命名 `gamerule.<id>`。
+
+### 8.3 服务端对等
+
+`/fantasyedit reload` 重读 `config.yml` 的 `build` 段，限额与历史深度无需重启服务器即生效。
+
+---
+
+## 9. 构建
 
 ```bash
 ./gradlew :fabric-client:build     # 输出 fabric-client/build/libs/fantasy_edit-1.0.0.jar
@@ -431,7 +474,7 @@ build:
 
 ---
 
-## 9. 已知限制
+## 10. 已知限制
 
 - 动态注册的物品/方块在**本次运行内无法注销**；删除 JSON 后重启即可完全移除。
 - 修改显示名 / Lore 后，新发放的 `ItemStack` 立即生效；世界中已存在的旧物品保留旧文本。
@@ -448,6 +491,6 @@ build:
 
 ---
 
-## 10. 许可证
+## 11. 许可证
 
 MIT License，详见 [LICENSE](LICENSE)。
