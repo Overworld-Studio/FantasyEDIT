@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.fantasy.edit.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "refmap": "fantasy_edit.refmap.json",
+  "mixins": [
+    "MappedRegistryMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

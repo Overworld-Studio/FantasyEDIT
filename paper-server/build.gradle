@@ -3,7 +3,7 @@ plugins {
 }
 
 base {
-    archivesName = 'fantasy-item-paper'
+    archivesName = 'fantasy-edit-paper'
 }
 
 repositories {

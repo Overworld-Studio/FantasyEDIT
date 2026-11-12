@@ -1,22 +1,22 @@
-name: FantasyItem
+name: FantasyEdit
 version: '${version}'
-main: com.fantasy.item.paper.FantasyItemPlugin
+main: com.fantasy.edit.paper.FantasyEditPlugin
 api-version: '26.3'
 authors: [ lively-Studio ]
-description: Fantasy:Item 服务端：加载虚空造物 JSON 定义并发放自定义物品。
+description: Fantasy:EDIT 服务端：加载虚空造物 JSON 定义并发放自定义物品。
 website: https://fantasy.example
 
 commands:
-  fantasyitem:
-    description: Fantasy:Item 管理指令
-    usage: /fantasyitem <reload|list|behaviors|build|undo|redo|give>
-    aliases: [ fitem ]
-    permission: fantasyitem.admin
+  fantasyedit:
+    description: Fantasy:EDIT 管理指令
+    usage: /fantasyedit <reload|list|behaviors|build|undo|redo|give>
+    aliases: [ fedit, fe ]
+    permission: fantasyedit.admin
 
 permissions:
-  fantasyitem.admin:
-    description: 允许使用 Fantasy:Item 管理指令
+  fantasyedit.admin:
+    description: 允许使用 Fantasy:EDIT 管理指令
     default: op
-  fantasyitem.build:
+  fantasyedit.build:
     description: 允许客户端向服务端提交世界快速搭建操作
     default: op

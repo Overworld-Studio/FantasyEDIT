@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "fantasy_item",
+  "id": "fantasy_edit",
   "version": "${version}",
-  "name": "Fantasy:Item",
+  "name": "Fantasy:EDIT",
   "description": "虚空造物引擎：游戏内动态创建自定义物品/方块，支持 Blockbench 模型热加载。",
   "authors": [
     "lively-Studio"
@@ -11,19 +11,19 @@
   "environment": "client",
   "entrypoints": {
     "main": [
-      "com.fantasy.item.FantasyItem"
+      "com.fantasy.edit.FantasyEdit"
     ],
     "client": [
-      "com.fantasy.item.client.FantasyItemClient"
+      "com.fantasy.edit.client.FantasyEditClient"
     ]
   },
   "mixins": [
     {
-      "config": "fantasy_item.mixins.json",
+      "config": "fantasy_edit.mixins.json",
       "environment": "client"
     },
     {
-      "config": "fantasy_item.client.mixins.json",
+      "config": "fantasy_edit.client.mixins.json",
       "environment": "client"
     }
   ],

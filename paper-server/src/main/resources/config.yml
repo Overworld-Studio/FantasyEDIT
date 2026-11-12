@@ -1,5 +1,5 @@
-# Fantasy:Item 服务端配置
-# 定义目录相对于 plugins/FantasyItem/
+# Fantasy:EDIT 服务端配置
+# 定义目录相对于 plugins/FantasyEdit/
 definitions-directory: definitions
 
 # 未指定 base_item 时使用的原版载体物品

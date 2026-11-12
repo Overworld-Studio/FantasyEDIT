@@ -1,8 +1,8 @@
-# Fantasy:Item
+# Fantasy:EDIT
 
 > 双端动态创作者引擎 —— 在游戏内“虚空造物”，让自定义物品与方块零重启出现。
 >
-> Mod ID / 指令命名空间：`fantasy_item` · 适配 Minecraft 26.3 · Fabric 客户端 + Paper 服务端
+> Mod ID / 指令命名空间：`fantasy_edit` · 适配 Minecraft 26.3 · Fabric 客户端 + Paper 服务端
 
 ---
 
@@ -16,9 +16,9 @@
 | 附魔流光 / 稀有度 / 堆叠 | ✅ Data Components | ✅ ItemMeta |
 | 物理模板 / 发光等级 | ✅ SOLID / GLASS / PASSABLE / DIRECTIONAL | ✅ 记录在定义中 |
 | Blockbench 模型 | ✅ JSON → 原版模型热烘焙 | — |
-| 热重载 | ✅ 保存后自动 `reloadResourcePacks()`，无需 F3+T | ✅ `/fantasyitem reload` |
+| 热重载 | ✅ 保存后自动 `reloadResourcePacks()`，无需 F3+T | ✅ `/fantasyedit reload` |
 | 行为编排（触发器 → 动作） | ✅ 行为编排面板，保存即注入事件总线 | ✅ 动态行为池 + 服务端权威执行 |
-| 双端行为同步 | ✅ `fantasy_item:behavior` → 服务端 | ✅ 校验后广播 `fantasy_item:behavior_sync` |
+| 双端行为同步 | ✅ `fantasy_edit:behavior` → 服务端 | ✅ 校验后广播 `fantasy_edit:behavior_sync` |
 | 可视化工作室 | ✅ 快捷键 `U` / 创造物品栏按钮 | — |
 | 世界快速搭建（仅创造） | ✅ 选区 / 笔刷 / 剪贴板 / 撤销重做 | ✅ 权威执行 + 限额 + 独立历史 |
 
@@ -27,14 +27,14 @@
 ## 2. 工程结构
 
 ```
-FantasyItem/
+FantasyEdit/
 ├── settings.gradle                 # 双模块聚合构建
 ├── gradle.properties               # 版本矩阵（MC / Loader / Fabric API / Paper）
 ├── fabric-client/                  # Fabric 26.3 客户端模组
 │   ├── build.gradle
 │   └── src/main/
-│       ├── java/com/fantasy/item/
-│       │   ├── FantasyItem.java                    # 公共入口：解冻注册表 + 加载定义
+│       ├── java/com/fantasy/edit/
+│       │   ├── FantasyEdit.java                    # 公共入口：解冻注册表 + 加载定义
 │       │   ├── definition/                         # JSON 模型与读写
 │       │   │   ├── ItemDefinition.java
 │       │   │   ├── BlockSettings.java
@@ -62,18 +62,18 @@ FantasyItem/
 │       │   │   ├── ClientBehaviorRuntime.java      # 表现层执行器 + 冷却
 │       │   │   └── ScriptHooks.java                # 轻量脚本钩子白名单
 │       │   ├── network/                            # 双端同步
-│       │   │   ├── BehaviorPayload.java            # C2S fantasy_item:behavior
-│       │   │   ├── BehaviorSyncPayload.java        # S2C fantasy_item:behavior_sync
+│       │   │   ├── BehaviorPayload.java            # C2S fantasy_edit:behavior
+│       │   │   ├── BehaviorSyncPayload.java        # S2C fantasy_edit:behavior_sync
 │       │   │   ├── BehaviorMessage.java            # 报文模型
 │       │   │   ├── BehaviorSync.java               # 推送 / 接收 / 回写定义
-│       │   │   ├── BuildPayload.java               # C2S fantasy_item:build
-│       │   │   ├── BuildAckPayload.java            # S2C fantasy_item:build_ack
+│       │   │   ├── BuildPayload.java               # C2S fantasy_edit:build
+│       │   │   ├── BuildAckPayload.java            # S2C fantasy_edit:build_ack
 │       │   │   ├── BuildMessage.java               # 建造报文
 │       │   │   └── BuildSync.java                  # 建造操作双端同步
 │       │   ├── mixin/MappedRegistryMixin.java      # 强制解除注册表冻结
 │       │   ├── text/LegacyText.java                # & 颜色代码 → Component
 │       │   └── client/
-│       │       ├── FantasyItemClient.java
+│       │       ├── FantasyEditClient.java
 │       │       ├── StudioKeybinds.java             # 快捷键 U
 │       │       ├── creativetab/FantasyTabs.java    # 专属 CreativeModeTab
 │       │       ├── gui/StudioScreen.java           # 三栏可视化工作室
@@ -90,23 +90,23 @@ FantasyItem/
 │       │           └── CreativeInventoryScreenMixin.java
 │       └── resources/
 │           ├── fabric.mod.json
-│           ├── fantasy_item.mixins.json
-│           ├── fantasy_item.client.mixins.json
-│           └── assets/fantasy_item/lang/*.json
+│           ├── fantasy_edit.mixins.json
+│           ├── fantasy_edit.client.mixins.json
+│           └── assets/fantasy_edit/lang/*.json
 │
 ├── paper-server/                   # Paper / Purpur 服务端插件
 │   ├── build.gradle
 │   └── src/main/
-│       ├── java/com/fantasy/item/paper/
-│       │   ├── FantasyItemPlugin.java
-│       │   ├── command/FantasyItemCommand.java     # reload / list / behaviors / build / undo / redo / give
+│       ├── java/com/fantasy/edit/paper/
+│       │   ├── FantasyEditPlugin.java
+│       │   ├── command/FantasyEditCommand.java     # reload / list / behaviors / build / undo / redo / give
 │       │   ├── item/ItemFactory.java               # ItemMeta + PDC
 │       │   ├── build/
 │       │   │   ├── BuildLimits.java                # 体积 / 半径 / 历史限额
 │       │   │   ├── BuildHistoryService.java        # 每玩家撤销重做
 │       │   │   ├── WorldEditService.java           # 填充 / 替换 / 笔刷 / 粘贴
 │       │   │   ├── BuildMessage.java
-│       │   │   └── BuildChannelListener.java       # fantasy_item:build 校验与执行
+│       │   │   └── BuildChannelListener.java       # fantasy_edit:build 校验与执行
 │       │   ├── behavior/
 │       │   │   ├── TriggerType.java
 │       │   │   ├── ActionType.java
@@ -135,7 +135,7 @@ FantasyItem/
 ## 3. 统一 JSON 定义规范
 
 客户端与服务端读取**完全相同**的 JSON。客户端保存在
-`config/fantasy_item/definitions/`，服务端保存在 `plugins/FantasyItem/definitions/`。
+`config/fantasy_edit/definitions/`，服务端保存在 `plugins/FantasyEdit/definitions/`。
 
 ```json
 {
@@ -178,8 +178,8 @@ FantasyItem/
 | `lore` | 字符串数组，每项一行 |
 | `block_properties.template` | `SOLID` / `GLASS` / `PASSABLE` / `DIRECTIONAL` |
 | `block_properties.light_level` | 0 ~ 15 |
-| `model` | `config/fantasy_item/models/` 下的 Blockbench 文件名 |
-| `texture` | `config/fantasy_item/textures/` 下的 PNG；留空则按模型名 / path 自动匹配 |
+| `model` | `config/fantasy_edit/models/` 下的 Blockbench 文件名 |
+| `texture` | `config/fantasy_edit/textures/` 下的 PNG；留空则按模型名 / path 自动匹配 |
 | `glint` | 是否强制附魔流光 |
 | `rarity` | `COMMON` / `UNCOMMON` / `RARE` / `EPIC` |
 | `max_stack_size` | 1 ~ 99 |
@@ -191,32 +191,32 @@ FantasyItem/
 ## 4. 客户端使用流程
 
 1. 启动客户端，按 `U`（或创造物品栏右上角“虚空造物”按钮）打开工作室。
-2. 把 Blockbench 导出的 `.json` 放进 `config/fantasy_item/models/`，
-   PNG 放进 `config/fantasy_item/textures/`。
+2. 把 Blockbench 导出的 `.json` 放进 `config/fantasy_edit/models/`，
+   PNG 放进 `config/fantasy_edit/textures/`。
 3. 在工作室中填写命名空间、路径 ID、显示名称、Lore，选择模型与纹理，
    设置物理模板 / 发光 / 流光 / 稀有度 / 堆叠。
 4. 点击 **保存并凭空生成**：
    - 动态注册 `namespace:path` 到 `BuiltInRegistries`；
-   - 生成 `config/fantasy_item/resourcepack/assets/<ns>/...`；
+   - 生成 `config/fantasy_edit/resourcepack/assets/<ns>/...`；
    - 触发一次资源热重载（等价自动 F3+T，无需手动按键）；
    - 物品直接进入背包，可用 `F3+H` 看到真实注册 ID。
-5. 专属创造标签页 `Fantasy:Item · 虚空造物` 会列出全部自创物品。
+5. 专属创造标签页 `Fantasy:EDIT · 虚空造物` 会列出全部自创物品。
 
 ### 关键实现
 
-- **注册表解冻**：[MappedRegistryMixin.java](fabric-client/src/main/java/com/fantasy/item/mixin/MappedRegistryMixin.java)
+- **注册表解冻**：[MappedRegistryMixin.java](fabric-client/src/main/java/com/fantasy/edit/mixin/MappedRegistryMixin.java)
   在 `MappedRegistry.freeze()` 返回后把 `frozen` 置回 `false`；
-  [RegistryUnfreezer.java](fabric-client/src/main/java/com/fantasy/item/registry/RegistryUnfreezer.java)
+  [RegistryUnfreezer.java](fabric-client/src/main/java/com/fantasy/edit/registry/RegistryUnfreezer.java)
   提供反射兜底。26.x 使用官方可读类名（`net.minecraft.core.MappedRegistry`），无需 mappings。
-- **动态工厂**：[DynamicRegistry.java](fabric-client/src/main/java/com/fantasy/item/registry/DynamicRegistry.java)
+- **动态工厂**：[DynamicRegistry.java](fabric-client/src/main/java/com/fantasy/edit/registry/DynamicRegistry.java)
   负责 `Item` / `Block` / `BlockItem` 的创建、`Item.BY_BLOCK` 与
   `Block.BLOCK_STATE_REGISTRY` 的幂等补齐。
-- **Blockbench 热加载**：[BlockbenchModel.java](fabric-client/src/main/java/com/fantasy/item/client/assets/BlockbenchModel.java)
+- **Blockbench 热加载**：[BlockbenchModel.java](fabric-client/src/main/java/com/fantasy/edit/client/assets/BlockbenchModel.java)
   解析 `.json` / `.bbmodel` 的 `elements`，转换为原版模型 JSON；
-  [ModelWriter.java](fabric-client/src/main/java/com/fantasy/item/client/assets/ModelWriter.java)
+  [ModelWriter.java](fabric-client/src/main/java/com/fantasy/edit/client/assets/ModelWriter.java)
   写入 `models` / `blockstates` / `items` / `textures`；
-  [DynamicPackSource.java](fabric-client/src/main/java/com/fantasy/item/client/assets/DynamicPackSource.java)
-  把目录挂载为必选资源包，[AssetReloader.java](fabric-client/src/main/java/com/fantasy/item/client/assets/AssetReloader.java)
+  [DynamicPackSource.java](fabric-client/src/main/java/com/fantasy/edit/client/assets/DynamicPackSource.java)
+  把目录挂载为必选资源包，[AssetReloader.java](fabric-client/src/main/java/com/fantasy/edit/client/assets/AssetReloader.java)
   调用 `Minecraft.reloadResourcePacks()`。
 
 > 说明：把 Blockbench 几何转换为原版模型 JSON，再交给原版烘焙器，
@@ -227,25 +227,27 @@ FantasyItem/
 
 ## 5. 服务端使用流程
 
-1. 把 `fantasy-item-paper-*.jar` 放入 `plugins/`。
-2. 启动一次生成 `plugins/FantasyItem/config.yml` 与 `definitions/`。
-3. 把客户端 `config/fantasy_item/definitions/*.json` 复制到
-   `plugins/FantasyItem/definitions/`（或修改 `definitions-directory` 指向共享目录）。
+1. 把 `fantasy-edit-paper-*.jar` 放入 `plugins/`。
+2. 启动一次生成 `plugins/FantasyEdit/config.yml` 与 `definitions/`。
+3. 把客户端 `config/fantasy_edit/definitions/*.json` 复制到
+   `plugins/FantasyEdit/definitions/`（或修改 `definitions-directory` 指向共享目录）。
 4. 指令：
 
 ```
-/fantasyitem reload                               # 重载全部 JSON
-/fantasyitem list                                 # 列出定义
-/fantasyitem give hyperlab:quantum_core           # 给自己
-/fantasyitem give hyperlab:quantum_core Steve 8   # 给指定玩家 8 个
+/fantasyedit reload                               # 重载全部 JSON
+/fantasyedit list                                 # 列出定义
+/fantasyedit give hyperlab:quantum_core           # 给自己
+/fantasyedit give hyperlab:quantum_core Steve 8   # 给指定玩家 8 个
 ```
+
+> 主指令为 `/fantasyedit`，同时注册了别名 `/fedit` 与 `/fe`。
 
 服务端无法注册真实物品，因此以 `base_item` 为载体，并写入：
 
 - `itemName` / `lore`（Adventure Component，支持 `&` 颜色）
 - `enchantment_glint_override`
 - `custom_model_data`（按定义 key 稳定哈希）
-- `PersistentDataContainer: fantasy_item:definition = namespace:path`
+- `PersistentDataContainer: fantasy_edit:definition = namespace:path`
 
 客户端模组 / 配套资源包可据此识别并渲染为对应的虚空造物，
 不会覆盖或污染任何原版物品。
@@ -257,7 +259,7 @@ FantasyItem/
 ### 6.1 可视化编排
 
 工作室左栏底部的 **“行为编排 (N)…”** 按钮打开独立面板
-[BehaviorEditorScreen.java](fabric-client/src/main/java/com/fantasy/item/client/gui/BehaviorEditorScreen.java)：
+[BehaviorEditorScreen.java](fabric-client/src/main/java/com/fantasy/edit/client/gui/BehaviorEditorScreen.java)：
 
 - 左栏：已有规则列表，点击即可载入编辑；
 - 右栏：触发器 / 动作循环切换，参数、时长、等级、冷却均可递增递减，
@@ -284,15 +286,15 @@ FantasyItem/
 ### 6.2 毫秒级热注入
 
 - **动态事件总线**：
-  [DynamicEventRouter.java](fabric-client/src/main/java/com/fantasy/item/behavior/DynamicEventRouter.java)
+  [DynamicEventRouter.java](fabric-client/src/main/java/com/fantasy/edit/behavior/DynamicEventRouter.java)
   在客户端初始化时一次性注册 `UseItemCallback`、`UseBlockCallback`、
   `AttackEntityCallback` 与 `ClientTickEvents`；每次事件发生时**实时**从
   `DefinitionStore` 读取规则，因此点击“保存并凭空生成”后**下一帧即可触发**，
   既不重载类，也不重启游戏。
 - **服务端动态行为池**：
-  [BehaviorPool.java](paper-server/src/main/java/com/fantasy/item/paper/behavior/BehaviorPool.java)
+  [BehaviorPool.java](paper-server/src/main/java/com/fantasy/edit/paper/behavior/BehaviorPool.java)
   以 `namespace:path` 为键保存规则；
-  [BehaviorRouter.java](paper-server/src/main/java/com/fantasy/item/paper/behavior/BehaviorRouter.java)
+  [BehaviorRouter.java](paper-server/src/main/java/com/fantasy/edit/paper/behavior/BehaviorRouter.java)
   监听 `PlayerInteractEvent` / `BlockPlaceEvent` / `EntityDamageByEntityEvent`，
   并以可配置的间隔调度 `ON_TICK`，所有规则带独立冷却，避免刷屏。
 - **一致性策略**：客户端只在“服务端未接管”时本地播放粒子与音效；
@@ -302,14 +304,14 @@ FantasyItem/
 
 ```
 客户端 GUI ──保存──▶ BehaviorSync.push()
-      │                │  C2S  fantasy_item:behavior
+      │                │  C2S  fantasy_edit:behavior
       │                ▼
       │        Paper: BehaviorChannelListener
-      │          1) 权限 fantasyitem.admin
+      │          1) 权限 fantasyedit.admin
       │          2) key / 规则 / 钩子白名单校验
       │          3) BehaviorPool.replace()  →  立即生效
       │          4) 回写 definitions/*.json  →  重启仍在
-      │          5) 广播  fantasy_item:behavior_sync
+      │          5) 广播  fantasy_edit:behavior_sync
       ▼                ▼
   本地定义回写      所有在线客户端刷新表现
 ```
@@ -324,7 +326,7 @@ FantasyItem/
 新增指令：
 
 ```
-/fantasyitem behaviors     # 查看当前已注入的行为树
+/fantasyedit behaviors     # 查看当前已注入的行为树
 ```
 
 ---
@@ -372,8 +374,8 @@ FantasyItem/
 
 ```
 Fabric 客户端                          Paper 服务端
-BuildPayload(fantasy_item:build)  →   BuildChannelListener
-                                       ├ 权限 fantasyitem.build
+BuildPayload(fantasy_edit:build)  →   BuildChannelListener
+                                       ├ 权限 fantasyedit.build
                                        ├ 创造模式校验（creative-only）
                                        ├ 维度一致性
                                        ├ 体积 ≤ max-volume
@@ -385,7 +387,7 @@ BuildAckPayload(build_ack)        ←   回执 {ok, changed, message}
 
 - 客户端与插件都会写方块，但写方块是幂等的，重复执行不会产生偏差；
 - 没有安装插件（单人 / 原版服务器）时 `canSend` 为 false，自动退化为纯客户端建造；
-- 服务端为每个玩家维护独立撤销栈，客户端 `Z` / `Y` 与 `/fantasyitem undo|redo` 等效；
+- 服务端为每个玩家维护独立撤销栈，客户端 `Z` / `Y` 与 `/fantasyedit undo|redo` 等效；
 - 一次报文上限 60000 字符，超出时客户端只做本地编辑。
 
 ### 7.6 服务端配置
@@ -404,8 +406,8 @@ build:
 ## 8. 构建
 
 ```bash
-./gradlew :fabric-client:build     # 输出 fabric-client/build/libs/fantasy_item-1.0.0.jar
-./gradlew :paper-server:build      # 输出 paper-server/build/libs/fantasy-item-paper-1.0.0.jar
+./gradlew :fabric-client:build     # 输出 fabric-client/build/libs/fantasy_edit-1.0.0.jar
+./gradlew :paper-server:build      # 输出 paper-server/build/libs/fantasy-edit-paper-1.0.0.jar
 ```
 
 版本矩阵集中在 [gradle.properties](gradle.properties)：
@@ -436,7 +438,7 @@ build:
 - Blockbench 解析器聚焦 Java Block/Item 导出；`.bbmodel` 支持基础 elements，
   复杂骨骼 / 动画不会被烘焙（本引擎定位为静态物品与方块）。
 - 服务端只是“载体 + 元数据”，完整的 3D 外观需要 Fabric 客户端与同步的资源包。
-- 服务端行为规则只对携带 PDC 标记 `fantasy_item:definition` 的发放物品生效；
+- 服务端行为规则只对携带 PDC 标记 `fantasy_edit:definition` 的发放物品生效；
   原版物品不会触发任何动态行为。
 - `ON_TICK` 由 `behaviors.tick-interval`（默认 5 tick）驱动，并按规则冷却限流；
   规则数量过多时请适当增大间隔。

@@ -32,7 +32,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: fantasy-item-fabric
+          name: fantasy-edit-fabric
           path: fabric-client/build/libs/*.jar
           if-no-files-found: warn
 
@@ -40,6 +40,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: fantasy-item-paper
+          name: fantasy-edit-paper
           path: paper-server/build/libs/*.jar
           if-no-files-found: warn

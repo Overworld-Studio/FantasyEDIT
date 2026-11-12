@@ -1,0 +1,21 @@
+{
+  "itemGroup.fantasy_edit.studio": "Fantasy:EDIT · 虚空造物",
+  "key.fantasy_edit.studio": "打开虚空造物工作室",
+  "key.categories.fantasy_edit": "Fantasy:EDIT",
+  "key.fantasy_edit.build.toggle": "开关快速搭建",
+  "key.fantasy_edit.build.panel": "打开搭建面板",
+  "key.fantasy_edit.build.mode": "切换建造模式",
+  "key.fantasy_edit.build.radius_down": "笔刷半径 -1",
+  "key.fantasy_edit.build.radius_up": "笔刷半径 +1",
+  "key.fantasy_edit.build.undo": "撤销建造",
+  "key.fantasy_edit.build.redo": "重做建造",
+  "key.fantasy_edit.build.copy": "复制选区",
+  "key.fantasy_edit.build.paste": "粘贴结构",
+  "key.fantasy_edit.build.corner_a": "选区角点 A",
+  "key.fantasy_edit.build.corner_b": "选区角点 B",
+  "key.fantasy_edit.build.clear": "清空选区",
+  "key.fantasy_edit.build.rotate": "旋转剪贴板",
+  "key.fantasy_edit.build.mirror": "镜像剪贴板",
+  "key.fantasy_edit.build.fill": "填充选区",
+  "key.fantasy_edit.build.erase": "切换涂抹/抹除"
+}
