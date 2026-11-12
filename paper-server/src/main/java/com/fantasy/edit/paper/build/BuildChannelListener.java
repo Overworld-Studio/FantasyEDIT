@@ -1,6 +1,6 @@
-package com.fantasy.item.paper.build;
+package com.fantasy.edit.paper.build;
 
-import com.fantasy.item.paper.FantasyItemPlugin;
+import com.fantasy.edit.paper.FantasyEditPlugin;
 import com.google.gson.Gson;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -14,22 +14,22 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 /**
- * {@code fantasy_item:build} 通道：校验客户端建造请求并执行，回执写入 {@code fantasy_item:build_ack}。
+ * {@code fantasy_edit:build} 通道：校验客户端建造请求并执行，回执写入 {@code fantasy_edit:build_ack}。
  *
- * <p>安全边界：仅创造模式、需要 {@code fantasyitem.build} 权限、受体积与半径限额约束。</p>
+ * <p>安全边界：仅创造模式、需要 {@code fantasyedit.build} 权限、受体积与半径限额约束。</p>
  */
 public final class BuildChannelListener implements PluginMessageListener {
 
-    public static final String INBOUND = "fantasy_item:build";
-    public static final String OUTBOUND = "fantasy_item:build_ack";
+    public static final String INBOUND = "fantasy_edit:build";
+    public static final String OUTBOUND = "fantasy_edit:build_ack";
     private static final int MAX_MESSAGE = 60000;
 
-    private final FantasyItemPlugin plugin;
+    private final FantasyEditPlugin plugin;
     private final BuildLimits limits;
     private final WorldEditService editor;
     private final Gson gson = new Gson();
 
-    public BuildChannelListener(FantasyItemPlugin plugin, BuildLimits limits, WorldEditService editor) {
+    public BuildChannelListener(FantasyEditPlugin plugin, BuildLimits limits, WorldEditService editor) {
         this.plugin = plugin;
         this.limits = limits;
         this.editor = editor;
@@ -54,8 +54,8 @@ public final class BuildChannelListener implements PluginMessageListener {
             ack(player, false, action, 0, "服务端已关闭快速搭建");
             return;
         }
-        if (!player.hasPermission("fantasyitem.build")) {
-            ack(player, false, action, 0, "缺少 fantasyitem.build 权限");
+        if (!player.hasPermission("fantasyedit.build")) {
+            ack(player, false, action, 0, "缺少 fantasyedit.build 权限");
             return;
         }
         if (this.limits.creativeOnly && player.getGameMode() != GameMode.CREATIVE) {

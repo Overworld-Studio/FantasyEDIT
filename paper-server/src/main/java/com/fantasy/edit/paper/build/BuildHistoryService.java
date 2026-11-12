@@ -1,4 +1,4 @@
-package com.fantasy.item.paper.build;
+package com.fantasy.edit.paper.build;
 
 import org.bukkit.Location;
 import org.bukkit.World;

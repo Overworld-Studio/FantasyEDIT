@@ -1,4 +1,4 @@
-package com.fantasy.item.paper.build;
+package com.fantasy.edit.paper.build;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 建造报文模型（与客户端 {@code com.fantasy.item.network.BuildMessage} 字段一一对应）。
+ * 建造报文模型（与客户端 {@code com.fantasy.edit.network.BuildMessage} 字段一一对应）。
  */
 public final class BuildMessage {
 
