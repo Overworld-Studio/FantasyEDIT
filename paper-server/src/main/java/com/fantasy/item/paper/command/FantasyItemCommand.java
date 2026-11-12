@@ -50,6 +50,9 @@ public final class FantasyItemCommand implements CommandExecutor, TabCompleter {
             }
             case "list" -> list(sender);
             case "behaviors" -> behaviors(sender);
+            case "build" -> build(sender);
+            case "undo" -> history(sender, false);
+            case "redo" -> history(sender, true);
             case "give" -> give(sender, args);
             default -> usage(sender);
         }
@@ -76,6 +79,38 @@ public final class FantasyItemCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Component.text("已注入行为树 (" + snapshot.size() + "):", NamedTextColor.AQUA));
         snapshot.forEach((key, rules) ->
                 sender.sendMessage(Component.text(" - " + key + " × " + rules.size(), NamedTextColor.GRAY)));
+    }
+
+    private void build(CommandSender sender) {
+        var limits = plugin.buildLimits();
+        if (limits == null) {
+            sender.sendMessage(Component.text("快速搭建尚未初始化", NamedTextColor.RED));
+            return;
+        }
+        sender.sendMessage(Component.text("快速搭建限额", NamedTextColor.AQUA));
+        sender.sendMessage(Component.text(" - 开关: " + (limits.enabled ? "开" : "关")
+                + " · 仅创造模式: " + (limits.creativeOnly ? "是" : "否"), NamedTextColor.GRAY));
+        sender.sendMessage(Component.text(" - 最大体积: " + limits.maxVolume
+                + " 格 · 最大笔刷半径: " + limits.maxRadius
+                + " · 历史深度: " + limits.historyDepth, NamedTextColor.GRAY));
+        if (sender instanceof Player player) {
+            sender.sendMessage(Component.text(" - 你的历史: 撤销 " + plugin.worldEdit().history().undoSize(player)
+                    + " · 重做 " + plugin.worldEdit().history().redoSize(player), NamedTextColor.GRAY));
+        }
+        sender.sendMessage(Component.text("客户端按 B 开启建造模式，P 打开搭建面板", NamedTextColor.DARK_AQUA));
+    }
+
+    private void history(CommandSender sender, boolean redo) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Component.text("该指令只能由玩家执行", NamedTextColor.RED));
+            return;
+        }
+        boolean ok = redo ? plugin.worldEdit().redo(player) : plugin.worldEdit().undo(player);
+        if (ok) {
+            sender.sendMessage(Component.text(redo ? "已重做上一次建造" : "已撤销上一次建造", NamedTextColor.GREEN));
+        } else {
+            sender.sendMessage(Component.text(redo ? "没有可重做的操作" : "没有可撤销的操作", NamedTextColor.YELLOW));
+        }
     }
 
     private void give(CommandSender sender, String[] args) {
@@ -127,6 +162,8 @@ public final class FantasyItemCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(Component.text("/fantasyitem reload — 重载 JSON 定义", NamedTextColor.GRAY));
         sender.sendMessage(Component.text("/fantasyitem list — 列出全部定义", NamedTextColor.GRAY));
         sender.sendMessage(Component.text("/fantasyitem behaviors — 查看已注入的行为树", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/fantasyitem build — 查看快速搭建限额与历史", NamedTextColor.GRAY));
+        sender.sendMessage(Component.text("/fantasyitem undo | redo — 撤销 / 重做建造", NamedTextColor.GRAY));
         sender.sendMessage(Component.text("/fantasyitem give <namespace:path> [player] [amount]", NamedTextColor.GRAY));
     }
 
@@ -134,7 +171,7 @@ public final class FantasyItemCommand implements CommandExecutor, TabCompleter {
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                                 @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
-            return filter(List.of("reload", "list", "behaviors", "give"), args[0]);
+            return filter(List.of("reload", "list", "behaviors", "build", "undo", "redo", "give"), args[0]);
         }
         if (args.length == 2 && "give".equalsIgnoreCase(args[0])) {
             List<String> keys = new ArrayList<>();

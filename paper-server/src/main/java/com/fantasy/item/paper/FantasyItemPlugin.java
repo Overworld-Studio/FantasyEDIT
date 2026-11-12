@@ -3,6 +3,10 @@ package com.fantasy.item.paper;
 import com.fantasy.item.paper.behavior.BehaviorPool;
 import com.fantasy.item.paper.behavior.BehaviorRouter;
 import com.fantasy.item.paper.behavior.PaperActionExecutor;
+import com.fantasy.item.paper.build.BuildChannelListener;
+import com.fantasy.item.paper.build.BuildHistoryService;
+import com.fantasy.item.paper.build.BuildLimits;
+import com.fantasy.item.paper.build.WorldEditService;
 import com.fantasy.item.paper.command.FantasyItemCommand;
 import com.fantasy.item.paper.item.ItemFactory;
 import com.fantasy.item.paper.model.DefinitionStore;
@@ -20,7 +24,8 @@ import java.nio.file.Path;
  * 1. 从 definitions/ 读取与客户端一致的 JSON；
  * 2. 提供 /fantasyitem reload|list|give；
  * 3. 用 ItemMeta / Data Components 发放不影响原版的虚拟物品；
- * 4. 通过动态事件路由与插件消息通道承载运行时行为热注入。
+ * 4. 通过动态事件路由与插件消息通道承载运行时行为热注入；
+ * 5. 世界快速搭建：校验并执行客户端建造请求，维护可撤销历史。
  */
 public final class FantasyItemPlugin extends JavaPlugin {
 
@@ -30,6 +35,11 @@ public final class FantasyItemPlugin extends JavaPlugin {
     private ItemFactory itemFactory;
     private BehaviorRouter behaviorRouter;
     private BehaviorChannelListener channelListener;
+
+    private BuildLimits buildLimits;
+    private BuildHistoryService buildHistory;
+    private WorldEditService worldEdit;
+    private BuildChannelListener buildChannelListener;
 
     @Override
     public void onEnable() {
@@ -47,6 +57,7 @@ public final class FantasyItemPlugin extends JavaPlugin {
         command.setTabCompleter(executor);
 
         startBehaviorEngine();
+        startBuildEngine();
 
         getLogger().info("Fantasy:Item 已启用，共加载 " + definitionStore.size() + " 条虚空造物定义，"
                 + behaviorPool.size() + " 条行为树");
@@ -54,6 +65,10 @@ public final class FantasyItemPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (buildChannelListener != null) {
+            getServer().getMessenger().unregisterIncomingPluginChannel(this, BuildChannelListener.INBOUND, buildChannelListener);
+            buildChannelListener = null;
+        }
         if (behaviorRouter != null) {
             behaviorRouter.stopTickTask();
             behaviorRouter = null;
@@ -77,6 +92,18 @@ public final class FantasyItemPlugin extends JavaPlugin {
         this.channelListener = listener;
         getServer().getMessenger().registerIncomingPluginChannel(this, BehaviorChannelListener.INBOUND, listener);
         getServer().getMessenger().registerOutgoingPluginChannel(this, BehaviorChannelListener.OUTBOUND);
+    }
+
+    private void startBuildEngine() {
+        this.buildLimits = new BuildLimits(getConfig());
+        this.buildHistory = new BuildHistoryService(this.buildLimits.historyDepth);
+        this.worldEdit = new WorldEditService(this.buildHistory, this.buildLimits);
+
+        BuildChannelListener listener = new BuildChannelListener(this, this.buildLimits, this.worldEdit);
+        this.buildChannelListener = listener;
+        getServer().getMessenger().registerIncomingPluginChannel(this, BuildChannelListener.INBOUND, listener);
+        getServer().getMessenger().registerOutgoingPluginChannel(this, BuildChannelListener.OUTBOUND);
+        getLogger().info("快速搭建已就绪: " + this.buildLimits.describe());
     }
 
     /**
@@ -109,5 +136,13 @@ public final class FantasyItemPlugin extends JavaPlugin {
 
     public BehaviorPool behaviors() {
         return behaviorPool;
+    }
+
+    public BuildLimits buildLimits() {
+        return buildLimits;
+    }
+
+    public WorldEditService worldEdit() {
+        return worldEdit;
     }
 }

@@ -20,6 +20,7 @@
 | 行为编排（触发器 → 动作） | ✅ 行为编排面板，保存即注入事件总线 | ✅ 动态行为池 + 服务端权威执行 |
 | 双端行为同步 | ✅ `fantasy_item:behavior` → 服务端 | ✅ 校验后广播 `fantasy_item:behavior_sync` |
 | 可视化工作室 | ✅ 快捷键 `U` / 创造物品栏按钮 | — |
+| 世界快速搭建（仅创造） | ✅ 选区 / 笔刷 / 剪贴板 / 撤销重做 | ✅ 权威执行 + 限额 + 独立历史 |
 
 ---
 
@@ -44,6 +45,15 @@ FantasyItem/
 │       │   │   ├── DynamicRegistry.java            # 动态物品/方块工厂
 │       │   │   ├── FantasyBlock.java               # 朝向方块
 │       │   │   └── RegistryUnfreezer.java          # 反射兜底解冻
+│       │   ├── builder/                            # 世界快速搭建（仅创造模式）
+│       │   │   ├── BuildMode.java                  # 选区 / 笔刷 / 替换 / 粘贴
+│       │   │   ├── BrushShape.java                 # 球体 / 立方 / 圆柱 / 平滑 / 侵蚀 / 噪点
+│       │   │   ├── BuildSelection.java             # 双角点立方选区
+│       │   │   ├── BuildClipboard.java             # 结构剪贴板（旋转 / 镜像）
+│       │   │   ├── BuildHistory.java               # 撤销重做快照
+│       │   │   ├── ClientBuildEngine.java          # 编辑原语 + 粒子预览
+│       │   │   ├── BuildKeybinds.java              # B / P / [ ] / Z / Y …
+│       │   │   └── BuildHud.java                   # 建造 HUD
 │       │   ├── behavior/                           # 运行时行为编排
 │       │   │   ├── TriggerType.java                # ON_RIGHT_CLICK / PLACE / HIT / TICK
 │       │   │   ├── ActionType.java                 # 粒子 / 音效 / 状态 / 指令 / 脚本钩子
@@ -55,7 +65,11 @@ FantasyItem/
 │       │   │   ├── BehaviorPayload.java            # C2S fantasy_item:behavior
 │       │   │   ├── BehaviorSyncPayload.java        # S2C fantasy_item:behavior_sync
 │       │   │   ├── BehaviorMessage.java            # 报文模型
-│       │   │   └── BehaviorSync.java               # 推送 / 接收 / 回写定义
+│       │   │   ├── BehaviorSync.java               # 推送 / 接收 / 回写定义
+│       │   │   ├── BuildPayload.java               # C2S fantasy_item:build
+│       │   │   ├── BuildAckPayload.java            # S2C fantasy_item:build_ack
+│       │   │   ├── BuildMessage.java               # 建造报文
+│       │   │   └── BuildSync.java                  # 建造操作双端同步
 │       │   ├── mixin/MappedRegistryMixin.java      # 强制解除注册表冻结
 │       │   ├── text/LegacyText.java                # & 颜色代码 → Component
 │       │   └── client/
@@ -64,6 +78,7 @@ FantasyItem/
 │       │       ├── creativetab/FantasyTabs.java    # 专属 CreativeModeTab
 │       │       ├── gui/StudioScreen.java           # 三栏可视化工作室
 │       │       ├── gui/BehaviorEditorScreen.java   # 行为编排面板
+│       │       ├── gui/BuildToolbarScreen.java     # 快速搭建面板
 │       │       ├── assets/
 │       │       │   ├── AssetWorkspace.java         # 配置目录布局
 │       │       │   ├── BlockbenchModel.java        # Blockbench JSON 解析器
@@ -84,8 +99,14 @@ FantasyItem/
 │   └── src/main/
 │       ├── java/com/fantasy/item/paper/
 │       │   ├── FantasyItemPlugin.java
-│       │   ├── command/FantasyItemCommand.java     # reload / list / behaviors / give
+│       │   ├── command/FantasyItemCommand.java     # reload / list / behaviors / build / undo / redo / give
 │       │   ├── item/ItemFactory.java               # ItemMeta + PDC
+│       │   ├── build/
+│       │   │   ├── BuildLimits.java                # 体积 / 半径 / 历史限额
+│       │   │   ├── BuildHistoryService.java        # 每玩家撤销重做
+│       │   │   ├── WorldEditService.java           # 填充 / 替换 / 笔刷 / 粘贴
+│       │   │   ├── BuildMessage.java
+│       │   │   └── BuildChannelListener.java       # fantasy_item:build 校验与执行
 │       │   ├── behavior/
 │       │   │   ├── TriggerType.java
 │       │   │   ├── ActionType.java
@@ -308,7 +329,76 @@ FantasyItem/
 
 ---
 
-## 7. 构建
+## 7. 世界快速搭建（仅创造模式）
+
+参考 Axiom 的「工具化建造」思路：把建造拆成 **模式 / 笔刷 / 选区 / 剪贴板 / 历史** 五个正交维度，
+客户端即时预览并立即写方块，服务端以插件消息做权威落盘。
+
+### 7.1 四种模式
+
+| 模式 | 键 | 行为 |
+| --- | --- | --- |
+| 选区 SELECT | `G` / `H` | 点选两个角点，`L` 用持手方块填充整个立方体 |
+| 笔刷 BRUSH | 左键 / 右键 | 按住左键抹除、右键涂抹，逐 tick 连续绘制 |
+| 替换 REPLACE | 面板 | 「替换同块」只替换角点 A 的方块类型，「替换全部」替换所有非空气 |
+| 粘贴 PASTE | `C` / `V` | `C` 复制选区，`V` 把剪贴板贴到准星前方 |
+
+### 7.2 笔刷形状
+
+`球体 · 立方 · 圆柱 · 平滑 · 侵蚀 · 噪点`，半径 1~32。笔刷用粒子勾勒范围，
+每次落笔都作为一条独立历史记录，可以逐笔撤销。
+
+### 7.3 快捷键
+
+| 键 | 功能 | 键 | 功能 |
+| --- | --- | --- | --- |
+| `B` | 开关快速搭建 | `P` | 打开搭建面板 |
+| `X` | 切换模式 | `[` `]` | 笔刷半径 ±1 |
+| `G` `H` | 选区角点 A / B | `N` | 清空选区 |
+| `L` | 填充选区 | `K` | 涂抹 / 抹除切换 |
+| `C` | 复制选区 | `V` | 粘贴到准星 |
+| `R` | 旋转剪贴板 90° | `M` | 镜像剪贴板 |
+| `Z` | 撤销 | `Y` | 重做 |
+
+### 7.4 剪贴板
+
+复制时只记录非空气方块与相对坐标；粘贴时按 `旋转 → 镜像` 顺序变换坐标，
+方块状态自身也会调用 `BlockState#rotate / #mirror`，因此楼梯、原木朝向会一并旋转。
+
+### 7.5 双端同步与安全沙盒
+
+```
+Fabric 客户端                          Paper 服务端
+BuildPayload(fantasy_item:build)  →   BuildChannelListener
+                                       ├ 权限 fantasyitem.build
+                                       ├ 创造模式校验（creative-only）
+                                       ├ 维度一致性
+                                       ├ 体积 ≤ max-volume
+                                       ├ 半径 ≤ max-radius
+                                       └ WorldEditService 执行
+                                       ↓
+BuildAckPayload(build_ack)        ←   回执 {ok, changed, message}
+```
+
+- 客户端与插件都会写方块，但写方块是幂等的，重复执行不会产生偏差；
+- 没有安装插件（单人 / 原版服务器）时 `canSend` 为 false，自动退化为纯客户端建造；
+- 服务端为每个玩家维护独立撤销栈，客户端 `Z` / `Y` 与 `/fantasyitem undo|redo` 等效；
+- 一次报文上限 60000 字符，超出时客户端只做本地编辑。
+
+### 7.6 服务端配置
+
+```yaml
+build:
+  enabled: true          # 总开关
+  creative-only: true    # 仅创造模式
+  max-volume: 250000     # 单次操作最大方块数
+  max-radius: 16         # 笔刷最大半径
+  history-depth: 32      # 每玩家撤销步数
+```
+
+---
+
+## 8. 构建
 
 ```bash
 ./gradlew :fabric-client:build     # 输出 fabric-client/build/libs/fantasy_item-1.0.0.jar
@@ -336,7 +426,7 @@ FantasyItem/
 
 ---
 
-## 8. 已知限制
+## 9. 已知限制
 
 - 动态注册的物品/方块在**本次运行内无法注销**；删除 JSON 后重启即可完全移除。
 - 修改显示名 / Lore 后，新发放的 `ItemStack` 立即生效；世界中已存在的旧物品保留旧文本。
@@ -347,9 +437,12 @@ FantasyItem/
   原版物品不会触发任何动态行为。
 - `ON_TICK` 由 `behaviors.tick-interval`（默认 5 tick）驱动，并按规则冷却限流；
   规则数量过多时请适当增大间隔。
+- 快速搭建的笔刷同步按 250ms 节流，且服务端会按 `shape + radius` 重算范围；
+  `NOISE` 形状两端使用各自的随机数，落块结果可能存在细微差异。
+- 服务端修改方块使用 `applyPhysics = false`，不会触发沙砾下落、流体更新等连锁反应。
 
 ---
 
-## 9. 许可证
+## 10. 许可证
 
 MIT License，详见 [LICENSE](LICENSE)。

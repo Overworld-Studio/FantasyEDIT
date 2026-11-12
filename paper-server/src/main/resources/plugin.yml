@@ -9,11 +9,14 @@ website: https://fantasy.example
 commands:
   fantasyitem:
     description: Fantasy:Item 管理指令
-    usage: /fantasyitem <reload|list|give>
+    usage: /fantasyitem <reload|list|behaviors|build|undo|redo|give>
     aliases: [ fitem ]
     permission: fantasyitem.admin
 
 permissions:
   fantasyitem.admin:
     description: 允许使用 Fantasy:Item 管理指令
+    default: op
+  fantasyitem.build:
+    description: 允许客户端向服务端提交世界快速搭建操作
     default: op

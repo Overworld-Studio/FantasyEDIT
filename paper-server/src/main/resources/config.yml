@@ -13,3 +13,15 @@ behaviors:
   tick-interval: 5
   # 是否允许 EXECUTE_COMMAND 以控制台身份执行（默认关闭，安全沙盒）
   allow-console-commands: false
+
+build:
+  # 快速搭建总开关（关闭后客户端只能本地编辑，服务端不再落盘）
+  enabled: true
+  # 仅允许创造模式玩家提交建造操作
+  creative-only: true
+  # 单次操作允许的最大体积（方块数），防止一次填充卡死主线程
+  max-volume: 250000
+  # 笔刷最大半径（1~32）
+  max-radius: 16
+  # 每个玩家保留的撤销步数（1~128）
+  history-depth: 32
